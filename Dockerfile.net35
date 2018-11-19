@@ -1,0 +1,23 @@
+FROM microsoft/dotnet-framework:3.5-sdk-windowsservercore-1803
+
+ENV chocolateyUseWindowsCompression false
+
+SHELL ["cmd", "/S", "/C"]
+
+# Setup package management
+RUN powershell -Command \
+    Invoke-Expression ((New-Object Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+RUN powershell -Command \
+    Install-PackageProvider -Name chocolatey -Force
+
+ADD artifacts/*.ps1 c:/scripts/
+
+RUN powershell -File \
+    c:/scripts/base_software.ps1 \
+    choco feature disable --name showDownloadProgress \
+    refreshenv
+
+WORKDIR /data
+
+CMD [ "ping localhost -t" ]
